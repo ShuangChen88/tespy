@@ -1238,10 +1238,13 @@ class network:
         i = 0
         for c in self.conns.index:
             if not c.m.val_set:
+                self.relax = 1
                 c.m.val_SI += self.vec_z[i * (self.num_vars)] * self.relax
             if not c.p.val_set:
+                self.relax = 1/max(1,-self.vec_z[i * (self.num_vars) + 1]/(0.5*c.p.val_SI))
                 c.p.val_SI += self.vec_z[i * (self.num_vars) + 1] * self.relax
             if not c.h.val_set:
+                self.relax = 1/max(1,-self.vec_z[i * (self.num_vars) + 2]/(0.5*c.h.val_SI))
                 c.h.val_SI += self.vec_z[i * (self.num_vars) + 2] * self.relax
 
             j = 0
@@ -1260,6 +1263,9 @@ class network:
                 j += 1
             i += 1
 
+        for c in self.conns.index:
+            print(c.s,c.p.val_SI)
+            
         # check properties for consistency
         if self.iter < 3 and self.init_file is None:
             for c in self.conns.index:
@@ -1270,6 +1276,9 @@ class network:
 
             for c in self.conns.index:
                 self.solve_check_properties(c)
+                
+        for c in self.conns.index:
+            print(c.s,c.p.val_SI)
 
     def solve_check_properties(self, c):
         """
