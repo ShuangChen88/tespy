@@ -4377,7 +4377,7 @@ class heat_exchanger_simple(component):
     **default offdesign parameters**
 
     - kA (method: HE_COLD, param: m): *be aware that you must provide t_a and
-      t_a_design, if you want the heat flux calculated by this method*
+      t_a_design, if you want the heat flow calculated by this method*
 
     **inlets and outlets**
 
@@ -4423,11 +4423,14 @@ class heat_exchanger_simple(component):
 
         if is_set:
             self.hydro_group.set_attr(is_set=True)
-        elif self.hydro_group.is_set:
-            msg = ('All parameters of the component group have to be '
+        elif self.hydro_group.is_set and nw.compwarn:
+            msg = ('##### WARNING #####\n'
+                   'All parameters of the component group have to be '
                    'specified! This component group uses the following '
-                   'parameters: L, ks, D')
-            raise MyComponentError(msg)
+                   'parameters: L, ks, D at ' + self.label + '. '
+                   'Group will be set to False')
+            print(msg)
+            self.hydro_group.set_attr(is_set=False)
         else:
             self.hydro_group.set_attr(is_set=False)
 
@@ -4441,11 +4444,14 @@ class heat_exchanger_simple(component):
 
         if is_set:
             self.kA_group.set_attr(is_set=True)
-        elif self.kA_group.is_set:
-            msg = ('All parameters of the component group have to be '
+        elif self.kA_group.is_set and nw.compwarn:
+            msg = ('##### WARNING #####\n'
+                   'All parameters of the component group have to be '
                    'specified! This component group uses the following '
-                   'parameters: kA, t_a')
-            raise MyComponentError(msg)
+                   'parameters: kA, t_a at ' + self.label + '. '
+                   'Group will be set to False')
+            print(msg)
+            self.kA_group.set_attr(is_set=False)
         else:
             self.kA_group.set_attr(is_set=False)
 
@@ -4695,10 +4701,10 @@ class heat_exchanger_simple(component):
 
     def kA_func(self):
         r"""
-        equation for heat flux from ambient conditions
+        equation for heat flow from ambient conditions
 
         - determine hot side and cold side of the heat exchanger
-        - calculate heat flux
+        - calculate heat flow
 
         :returns: val (*float*) - residual value of equation
 
@@ -4995,7 +5001,7 @@ class pipe(heat_exchanger_simple):
     **default offdesign parameters**
 
     - kA (method: HE_COLD, param: m): *be aware that you must provide t_a and
-      t_a_design, if you want the heat flux calculated by this method*
+      t_a_design, if you want the heat flow calculated by this method*
 
     **inlets and outlets**
 
@@ -5024,16 +5030,21 @@ class solar_collector(heat_exchanger_simple):
 
     **available parameters**
 
-    - Q: heat flux
-    - pr: outlet to inlet pressure ratio
+    - Q: heat flow, :math:`[Q]=\text{W}`
+    - pr: outlet to inlet pressure ratio, :math:`[pr]=1`
     - zeta: geometry independent friction coefficient
       :math:`[\zeta]=\frac{\text{Pa}}{\text{m}^4}`, also see
       :func:`tespy.components.components.component.zeta_func`
+    - hydro_group: choose 'HW' for hazen-williams equation, else darcy friction
+      factor is used
     - D: diameter of the pipes, :math:`[D]=\text{m}`
     - L: length of the pipes, :math:`[L]=\text{m}`
     - ks: pipes roughness, :math:`[ks]=\text{m}` for darcy friiction
       , :math:`[ks]=\text{1}` for hazen-williams equation
-    - E: global solar radiation, :math:`[E] = \frac{\text{W}}{\text{m}^2}`
+    - energy_group: grouped parameters for solarthermal collector energy
+      balance
+    - E: absorption on the inclined surface,
+      :math:`[E] = \frac{\text{W}}{\text{m}^2}`
     - lkf_lin: linear loss key figure,
       :math:`[\alpha_1]=\frac{\text{W}}{\text{K} \cdot \text{m}}`
     - lkf_quad: quadratic loss key figure,
@@ -5048,7 +5059,7 @@ class solar_collector(heat_exchanger_simple):
         - D, L and ks, if you want to calculate pressure drop from darcy
           friction factor or hazen williams equation and
         - E, A, lkf_lin, lkf_quad and t_a, if you want to calculate the heat
-          flow on basis of the radiation and ambient conditions
+          flow on basis of the absorption and ambient conditions
 
     **equations**
 
@@ -5088,11 +5099,14 @@ class solar_collector(heat_exchanger_simple):
 
         if is_set:
             self.hydro_group.set_attr(is_set=True)
-        elif self.hydro_group.is_set:
-            msg = ('All parameters of the component group have to be '
+        elif self.hydro_group.is_set and nw.compwarn:
+            msg = ('##### WARNING #####\n'
+                   'All parameters of the component group have to be '
                    'specified! This component group uses the following '
-                   'parameters: L, ks, D at ' + self.label)
-            raise MyComponentError(msg)
+                   'parameters: L, ks, D at ' + self.label + '. '
+                   'Group will be set to False')
+            print(msg)
+            self.hydro_group.set_attr(is_set=False)
         else:
             self.hydro_group.set_attr(is_set=False)
 
@@ -5107,11 +5121,14 @@ class solar_collector(heat_exchanger_simple):
 
         if is_set:
             self.energy_group.set_attr(is_set=True)
-        elif self.energy_group.is_set:
-            msg = ('All parameters of the component group have to be '
+        elif self.energy_group.is_set and nw.compwarn:
+            msg = ('##### WARNING #####\n'
+                   'All parameters of the component group have to be '
                    'specified! This component group uses the following '
-                   'parameters: E, lkf_lin, lkf_quad, A, t_a at ' + self.label)
-            raise MyComponentError(msg)
+                   'parameters: E, lkf_lin, lkf_quad, A, t_a at ' + self.label
+                   + '. Group will be set to False')
+            print(msg)
+            self.energy_group.set_attr(is_set=False)
         else:
             self.energy_group.set_attr(is_set=False)
 
@@ -5148,7 +5165,7 @@ class solar_collector(heat_exchanger_simple):
         r"""
         additional equations for solar collectors
 
-        - calculates collector heat flux from global solar radiation
+        - calculates collector heat flux from area independent absorption
 
         :param nw: network using this component object
         :type nw: tespy.networks.network

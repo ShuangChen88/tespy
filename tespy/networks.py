@@ -513,7 +513,13 @@ class network:
             raise hlp.MyNetworkError(msg)
 
         if self.mode == 'offdesign':
-            self.init_offdesign()  # characteristics for offdesign
+            # characteristics for offdesign
+            self.init_offdesign()
+        else:
+            # component initialisation for design case if no topological
+            # changes have been applied
+            for cp in self.comps.index:
+                cp.comp_init(self)
 
         self.init_fluids()  # start standard fluid initialisation
         self.init_properties()  # start standard property initialisation
@@ -1171,8 +1177,6 @@ class network:
                     msg += ' |      nan'
                 print(msg)
 
-            self.iter += 1
-
             # stop calculation after rediculous amount of iterations
             if self.iter > 3 and self.res[-1] < hlp.err ** (1 / 2):
                     break
@@ -1183,11 +1187,18 @@ class network:
                     if self.nwkwarn:
                         print('##### WARNING #####\n'
                               'Convergence is making no progress, calculation '
-                              'stopped.')
+                              'stopped, residual value is '
+                              '{:.2e}'.format(norm(self.vec_res)))
                         break
 
             if self.lin_dep:
                 break
+
+        if self.iter == self.max_iter - 1:
+            print('##### WARNING #####\n'
+                  'Reached maximum iteration count, calculation '
+                  'stopped, residual value is '
+                  '{:.2e}'.format(norm(self.vec_res)))
 
     def solve_control(self):
         """
