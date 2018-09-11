@@ -1264,7 +1264,7 @@ class network:
             i += 1
 
         for c in self.conns.index:
-            print(c.s,c.p.val_SI)
+            print(c.s,c.p.val_SI,c.h.val_SI)
             
         # check properties for consistency
         if self.iter < 3 and self.init_file is None:
