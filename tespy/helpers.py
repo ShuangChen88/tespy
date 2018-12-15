@@ -7,6 +7,8 @@
 
 import CoolProp.CoolProp as CP
 from CoolProp.CoolProp import PropsSI as CPPSI
+from CoolProp import AbstractState as AS
+import CoolProp
 
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
@@ -668,6 +670,10 @@ def T_ph(p, h, fluid):
     elif 'TESPy::' in fluid:
         db = tespy_fluid.fluids[fluid].funcs['h_pT']
         return newton(reverse_2d, reverse_2d_deriv, [db, p, h], 0)
+    elif 'TTSE::water' in fluid:
+        TTSE = AS("TTSE&HEOS", "water") # tabular interpolation
+        TTSE.update(CoolProp.HmassP_INPUTS, h, p)
+        return TTSE.T()
     else:
         return CPPSI('T', 'P', p, 'H', h, fluid)
 
@@ -822,6 +828,10 @@ def T_ps(p, s, fluid):
     elif 'TESPy::' in fluid:
         db = tespy_fluid.fluids[fluid].funcs['s_pT']
         return newton(reverse_2d, reverse_2d_deriv, [db, p, s], 0)
+    elif 'TTSE::water' in fluid:
+        TTSE = AS("TTSE&HEOS", "water") # tabular interpolation
+        TTSE.update(CoolProp.PSmass_INPUTS, p, s)
+        return TTSE.T()
     else:
         return CPPSI('T', 'P', p, 'S', s, fluid)
 
@@ -872,6 +882,10 @@ def h_pT(p, T, fluid):
         print('Ideal gas calculation not available by now.')
     elif 'TESPy::' in fluid:
         return tespy_fluid.fluids[fluid].funcs['h_pT'].ev(p, T)
+    elif 'TTSE::water' in fluid:
+        TTSE = AS("TTSE&HEOS", "water") # tabular interpolation
+        TTSE.update(CoolProp.PT_INPUTS, p, T)
+        return TTSE.hmass()
     else:
         return CPPSI('H', 'P', p, 'T', T, fluid)
 
@@ -935,6 +949,10 @@ def h_ps(p, s, fluid):
         db = tespy_fluid.fluids[fluid].funcs['s_pT']
         T = newton(reverse_2d, reverse_2d_deriv, [db, p, s], 0)
         return tespy_fluid.fluids[fluid].funcs['h_pT'].ev(p, T)
+    elif 'TTSE::water' in fluid:
+        EOS = AS("HEOS", "water") # tabular interpolation
+        EOS.update(CoolProp.PSmass_INPUTS, p, s)
+        return EOS.hmass()
     else:
         return CPPSI('H', 'P', p, 'S', s, fluid)
 
@@ -1066,6 +1084,10 @@ def d_ph(p, h, fluid):
         db = tespy_fluid.fluids[fluid].funcs['h_pT']
         T = newton(reverse_2d, reverse_2d_deriv, [db, p, h], 0)
         return tespy_fluid.fluids[fluid].funcs['d_pT'].ev(p, T)
+    elif 'TTSE::water' in fluid:
+        TTSE = AS("TTSE&HEOS", "water") # tabular interpolation
+        TTSE.update(CoolProp.HmassP_INPUTS, h, p)
+        return TTSE.rhomass()
     else:
         return CPPSI('D', 'P', p, 'H', h, fluid)
 
@@ -1132,6 +1154,10 @@ def d_pT(p, T, fluid):
         print('Ideal gas calculation not available by now.')
     elif 'TESPy::' in fluid:
         return tespy_fluid.fluids[fluid].funcs['d_pT'].ev(p, T)
+    elif 'TTSE::water' in fluid:
+        TTSE = AS("TTSE&HEOS", "water") # tabular interpolation
+        TTSE.update(CoolProp.PT_INPUTS, p, T)
+        return TTSE.rhomass()
     else:
         return CPPSI('D', 'P', p, 'T', T, fluid)
 
@@ -1204,6 +1230,10 @@ def visc_ph(p, h, fluid):
         db = tespy_fluid.fluids[fluid].funcs['h_pT']
         T = newton(reverse_2d, reverse_2d_deriv, [db, p, h], 0)
         return tespy_fluid.fluids[fluid].funcs['visc_pT'].ev(p, T)
+    elif 'TTSE::water' in fluid:
+        TTSE = AS("TTSE&HEOS", "water") # tabular interpolation
+        TTSE.update(CoolProp.HmassP_INPUTS, h, p)
+        return TTSE.viscosity()
     else:
         return CPPSI('V', 'P', p, 'H', h, fluid)
 
@@ -1258,6 +1288,10 @@ def visc_pT(p, T, fluid):
         print('Ideal gas calculation not available by now.')
     elif 'TESPy::' in fluid:
         return tespy_fluid.fluids[fluid].funcs['visc_pT'].ev(p, T)
+    elif 'TTSE::water' in fluid:
+        TTSE = AS("TTSE&HEOS", "water") # tabular interpolation
+        TTSE.update(CoolProp.PT_INPUTS, p, T)
+        return TTSE.viscosity()
     else:
         return CPPSI('V', 'P', p, 'T', T, fluid)
 
@@ -1330,6 +1364,10 @@ def s_ph(p, h, fluid):
         db = tespy_fluid.fluids[fluid].funcs['h_pT']
         T = newton(reverse_2d, reverse_2d_deriv, [db, p, h], 0)
         return tespy_fluid.fluids[fluid].funcs['s_pT'].ev(p, T)
+    elif 'TTSE::water' in fluid:
+        TTSE = AS("TTSE&HEOS", "water") # tabular interpolation
+        TTSE.update(CoolProp.HmassP_INPUTS, h, p)
+        return TTSE.smass()
     else:
         return CPPSI('S', 'P', p, 'H', h, fluid)
 
@@ -1423,6 +1461,10 @@ def s_pT(p, T, fluid):
         print('Ideal gas calculation not available by now.')
     elif 'TESPy::' in fluid:
         return tespy_fluid.fluids[fluid].funcs['s_pT'].ev(p, T)
+    elif 'TTSE::water' in fluid:
+        TTSE = AS("TTSE&HEOS", "water") # tabular interpolation
+        TTSE.update(CoolProp.PT_INPUTS, p, T)
+        return TTSE.smass()
     else:
         return CPPSI('S', 'P', p, 'T', T, fluid)
 
